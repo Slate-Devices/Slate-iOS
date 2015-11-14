@@ -7,12 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <JSQMessagesViewController/JSQMessages.h>
 
-@interface ViewController : UIViewController
+@interface ViewController : JSQMessagesViewController <UIActionSheetDelegate, JSQMessagesComposerTextViewPasteDelegate>
 
 @property (nonatomic, weak) IBOutlet UITableView* eventsTableView;
-
-
 
 @end
 

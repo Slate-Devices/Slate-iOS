@@ -83,12 +83,6 @@
                             </subviews>
                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         </view>
-                        <barButtonItem key="rightBarButtonItem" style="plain" systemItem="refresh" id="yiX-RU-OX7">
-                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                            <connections>
-                                <action selector="getEventsFromAPI:" destination="tSR-Gp-rjp" id="PNv-3L-upq"/>
-                            </connections>
-                        </barButtonItem>
                     </navigationItem>
                     <connections>
                         <outlet property="eventsTableView" destination="z4r-E6-0oz" id="M4z-5q-gmY"/>
