@@ -13,7 +13,7 @@
 
 @interface ViewController () <JSQMessagesCollectionViewDataSource, JSQMessagesCollectionViewDelegateFlowLayout, JSQMessageData> {
     NSMutableArray *_messages;
-    
+    BOOL has_alert;
 }
 
 @end
@@ -26,12 +26,13 @@
     
     _messages = [NSMutableArray array];
   
+    has_alert = NO;
+    
     self.senderId = @"user-1";
     self.senderDisplayName = @"Me";
     
     self.collectionView.collectionViewLayout.incomingAvatarViewSize = CGSizeZero;
     self.collectionView.collectionViewLayout.outgoingAvatarViewSize = CGSizeZero;
-    
     
     self.collectionView.collectionViewLayout.springinessEnabled = YES;
 }
@@ -60,15 +61,13 @@
                options:kNilOptions
                error:&error];
     
-    BOOL has_alert = NO;
-    
     for (NSDictionary* event in events) {
         // Check for Criteria and Compose Messages
         
         NSString* message_text;
         
         if ([[event objectForKey:@"event_type"] isEqualToString:@"noise"]) {
-            if ((int)[event objectForKey:@"amount"] > 80) {
+            if ([[event objectForKey:@"amount"] floatValue] > 60.0) {
                 message_text = @"I've detected some loud noise in your home, what would you like me to do?";
             }
         } else if ([[event objectForKey:@"event_type"] isEqualToString:@"temp"]) {
@@ -130,9 +129,11 @@
     
     [self.collectionView reloadData];
     
-    self.showTypingIndicator = !self.showTypingIndicator;
+    if (has_alert) {
+        self.showTypingIndicator = !self.showTypingIndicator;
     
-    [self performSelector:@selector(showDeviceReply) withObject:NULL afterDelay:1.3f];
+        [self performSelector:@selector(showDeviceReply) withObject:NULL afterDelay:1.3f];
+    }
 }
 
 - (void)showDeviceReply {
