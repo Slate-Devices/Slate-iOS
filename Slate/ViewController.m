@@ -60,13 +60,15 @@
                options:kNilOptions
                error:&error];
     
+    BOOL has_alert = NO;
+    
     for (NSDictionary* event in events) {
         // Check for Criteria and Compose Messages
         
         NSString* message_text;
         
         if ([[event objectForKey:@"event_type"] isEqualToString:@"noise"]) {
-            if ((int)[event objectForKey:@"amount"] > 20) {
+            if ((int)[event objectForKey:@"amount"] > 80) {
                 message_text = @"I've detected some loud noise in your home, what would you like me to do?";
             }
         } else if ([[event objectForKey:@"event_type"] isEqualToString:@"temp"]) {
@@ -77,14 +79,27 @@
             }
         }
         
-        if (message_text) {
+        if (message_text && !has_alert) {
             [_messages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
                                                      senderDisplayName:@"Device"
                                                                   date:[NSDate date]
                                                                   text:message_text]];
             
             [self finishReceivingMessageAnimated:YES];
+            
+            has_alert = YES;
         }
+        
+        [NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://146.148.120.81/events/%@/ack", [event objectForKey:@"id"]]]];
+    }
+    
+    if (!has_alert) {
+        [_messages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
+                                                senderDisplayName:@"Device"
+                                                             date:[NSDate date]
+                                                             text:@"Everything seems normal in your home right now."]];
+        
+        [self finishReceivingMessageAnimated:YES];
     }
     
 }
