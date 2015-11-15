@@ -27,7 +27,7 @@
     _messages = [NSMutableArray array];
   
     self.senderId = @"user-1";
-    self.senderDisplayName = @"Sam";
+    self.senderDisplayName = @"Me";
     
     self.collectionView.collectionViewLayout.incomingAvatarViewSize = CGSizeZero;
     self.collectionView.collectionViewLayout.outgoingAvatarViewSize = CGSizeZero;
@@ -46,7 +46,7 @@
 }
 
 - (IBAction)getEventsFromAPI:(id)sender {
-    NSData* data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"http://192.168.1.197:9393/events?device_id=1"]];
+    NSData* data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"http://146.148.120.81/events/1"]];
     [self fetchedData:data];
     [self.collectionView reloadData];
 }
@@ -54,18 +54,37 @@
 - (void)fetchedData:(NSData *)responseData {
     //parse out the json data
     NSError* error;
+    
     NSArray *events = [NSJSONSerialization
                JSONObjectWithData:responseData
                options:kNilOptions
                error:&error];
     
     for (NSDictionary* event in events) {
-        [_messages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
-                                                 senderDisplayName:@"Device"
-                                                              date:[NSDate date]
-                                                              text:(NSString*)[event objectForKey:@"name"]]];
+        // Check for Criteria and Compose Messages
         
-        [self finishReceivingMessageAnimated:YES];
+        NSString* message_text;
+        
+        if ([[event objectForKey:@"event_type"] isEqualToString:@"noise"]) {
+            if ((int)[event objectForKey:@"amount"] > 20) {
+                message_text = @"I've detected some loud noise in your home, what would you like me to do?";
+            }
+        } else if ([[event objectForKey:@"event_type"] isEqualToString:@"temp"]) {
+            if ((int)[event objectForKey:@"amount"] > 30) {
+                message_text = @"It's way too hot at home, should I turn on the AC?";
+            } else if ((int)[event objectForKey:@"amount"] < 0) {
+                message_text = @"It's below freezing in your home, should I turn on the heater?";
+            }
+        }
+        
+        if (message_text) {
+            [_messages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
+                                                     senderDisplayName:@"Device"
+                                                                  date:[NSDate date]
+                                                                  text:message_text]];
+            
+            [self finishReceivingMessageAnimated:YES];
+        }
     }
     
 }
@@ -85,8 +104,8 @@
      */
     [JSQSystemSoundPlayer jsq_playMessageSentSound];
     
-    JSQMessage *message = [[JSQMessage alloc] initWithSenderId:senderId
-                                             senderDisplayName:senderDisplayName
+    JSQMessage *message = [[JSQMessage alloc] initWithSenderId:self.senderId
+                                             senderDisplayName:self.senderDisplayName
                                                           date:date
                                                           text:text];
     
@@ -95,6 +114,25 @@
     [self finishSendingMessageAnimated:YES];
     
     [self.collectionView reloadData];
+    
+    self.showTypingIndicator = !self.showTypingIndicator;
+    
+    [self performSelector:@selector(showDeviceReply) withObject:NULL afterDelay:1.3f];
+}
+
+- (void)showDeviceReply {
+    JSQMessage *message_reply = [[JSQMessage alloc] initWithSenderId:@"device-1"
+                                                   senderDisplayName:@"Device"
+                                                                date:[NSDate date]
+                                                                text:@"Ok"];
+    
+    [_messages addObject:message_reply];
+    
+    [self finishSendingMessageAnimated:YES];
+    
+    [self.collectionView reloadData];
+    
+    self.showTypingIndicator = !self.showTypingIndicator;
 }
 
 - (id<JSQMessageData>)collectionView:(JSQMessagesCollectionView *)collectionView messageDataForItemAtIndexPath:(NSIndexPath *)indexPath
