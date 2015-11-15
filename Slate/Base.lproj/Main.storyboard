@@ -52,6 +52,12 @@
                             </subviews>
                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         </view>
+                        <barButtonItem key="rightBarButtonItem" style="plain" systemItem="refresh" id="Yo8-l2-ynq">
+                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            <connections>
+                                <action selector="getEventsFromAPI:" destination="tSR-Gp-rjp" id="jPt-FG-WOI"/>
+                            </connections>
+                        </barButtonItem>
                     </navigationItem>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="oz9-kQ-MfU" userLabel="First Responder" sceneMemberID="firstResponder"/>

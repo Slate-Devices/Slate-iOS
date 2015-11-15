@@ -14,6 +14,7 @@
 @interface ViewController () <JSQMessagesCollectionViewDataSource, JSQMessagesCollectionViewDelegateFlowLayout, JSQMessageData> {
     NSMutableArray *_messages;
     BOOL has_alert;
+    NSDate *lastRefresh;
 }
 
 @end
@@ -25,6 +26,7 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     _messages = [NSMutableArray array];
+    lastRefresh = [NSDate date];
   
     has_alert = NO;
     
@@ -47,6 +49,9 @@
 }
 
 - (IBAction)getEventsFromAPI:(id)sender {
+    has_alert = NO;
+    _messages = [[NSMutableArray alloc] init];
+    
     NSData* data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"http://146.148.120.81/events/1"]];
     [self fetchedData:data];
     [self.collectionView reloadData];
@@ -60,36 +65,54 @@
                JSONObjectWithData:responseData
                options:kNilOptions
                error:&error];
+    if (events.count > 0)
+        lastRefresh = [NSDate date];
     
-    for (NSDictionary* event in events) {
-        // Check for Criteria and Compose Messages
+    NSDateFormatter* apiTime = [[NSDateFormatter alloc] init];
+    [apiTime setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZZZ"];
+    
+    if ([[NSDate date] timeIntervalSinceDate:[apiTime dateFromString:[events.lastObject objectForKey:@"event_time"]]] > 120 || (events.count == 0 && [[NSDate date] timeIntervalSinceDate:lastRefresh] > 120)) {
+        [_messages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
+                                                senderDisplayName:@"Device"
+                                                             date:[NSDate date]
+                                                             text:@"I'm having trouble connecting to your device, has it been turned off?"]];
         
-        NSString* message_text;
+        [self finishReceivingMessageAnimated:YES];
         
-        if ([[event objectForKey:@"event_type"] isEqualToString:@"noise"]) {
-            if ([[event objectForKey:@"amount"] floatValue] > 60.0) {
-                message_text = @"I've detected some loud noise in your home, what would you like me to do?";
-            }
-        } else if ([[event objectForKey:@"event_type"] isEqualToString:@"temp"]) {
-            if ((int)[event objectForKey:@"amount"] > 30) {
-                message_text = @"It's way too hot at home, should I turn on the AC?";
-            } else if ((int)[event objectForKey:@"amount"] < 0) {
-                message_text = @"It's below freezing in your home, should I turn on the heater?";
-            }
-        }
+        has_alert = YES;
+    } else {
         
-        if (message_text && !has_alert) {
-            [_messages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
-                                                     senderDisplayName:@"Device"
-                                                                  date:[NSDate date]
-                                                                  text:message_text]];
+        for (NSDictionary* event in events) {
+            // Check for Criteria and Compose Messages
             
-            [self finishReceivingMessageAnimated:YES];
+            NSString* message_text;
             
-            has_alert = YES;
+            if ([[event objectForKey:@"event_type"] isEqualToString:@"noise"]) {
+                if ([[event objectForKey:@"amount"] floatValue] > 40.0) {
+                    message_text = @"I've detected some loud noise in your home, what would you like me to do?";
+                }
+            } else if ([[event objectForKey:@"event_type"] isEqualToString:@"temp"]) {
+                if ((int)[event objectForKey:@"amount"] > 30) {
+                    message_text = @"It's way too hot at home, should I turn on the AC?";
+                } else if ((int)[event objectForKey:@"amount"] < 0) {
+                    message_text = @"It's below freezing in your home, should I turn on the heater?";
+                }
+            }
+            
+            if (message_text && !has_alert) {
+                [_messages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
+                                                         senderDisplayName:@"Device"
+                                                                      date:[NSDate date]
+                                                                      text:message_text]];
+                
+                [self finishReceivingMessageAnimated:YES];
+                
+                has_alert = YES;
+            }
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                [NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://146.148.120.81/events/%@/ack", [event objectForKey:@"id"]]]];
+            });
         }
-        
-        [NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://146.148.120.81/events/%@/ack", [event objectForKey:@"id"]]]];
     }
     
     if (!has_alert) {
