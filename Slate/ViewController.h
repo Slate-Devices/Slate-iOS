@@ -11,7 +11,5 @@
 
 @interface ViewController : JSQMessagesViewController <UIActionSheetDelegate, JSQMessagesComposerTextViewPasteDelegate>
 
-@property (nonatomic, weak) IBOutlet UITableView* eventsTableView;
-
 @end
 

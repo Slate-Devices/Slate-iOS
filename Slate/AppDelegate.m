@@ -75,8 +75,8 @@
 
 - (void)initializeParseKeys
 {
-    [Parse setApplicationId:@"<Application ID>"
-                  clientKey:@"<Client Key>"];
+    [Parse setApplicationId:@"Few1XXtjnoqhyNLOqgEz63H4GOg2IonFIlLEXVKy"
+                  clientKey:@"EWMf7SYaplSN7JPAPHGDbGV5k2Mf54OZMojedCQ3"];
 }
 
 - (void)registerInstalationWithParseForDeviceToken:(NSData*)deviceToken

@@ -64,7 +64,10 @@
     _messages = [[NSMutableArray alloc] init];
     
     PFQuery *alertsQuery = [PFQuery queryWithClassName:@"Alert"];
-    [alertsQuery whereKey:@"user_id" equalTo:[[PFUser currentUser] objectId]];
+    [alertsQuery whereKey:@"seen" notEqualTo:@YES];
+    
+    [alertsQuery findObjects];
+    
     NSArray *data = [alertsQuery findObjects];
     
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -123,6 +126,7 @@
             }
             
             [event setValue:@YES forKey:@"seen"];
+            [event setValue:[[PFUser currentUser] objectId] forKey:@"user_id"];
             [event saveInBackground];
         }
     }
