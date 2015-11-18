@@ -5,5 +5,6 @@
 
 target 'Slate' do
   pod 'JSQMessagesViewController'
+  pod 'Parse'
 end
 

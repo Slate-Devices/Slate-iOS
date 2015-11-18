@@ -10,6 +10,7 @@
 #import "EventCell.h"
 
 #import <JSQMessagesViewController/JSQMessages.h>
+#import <Parse/Parse.h>
 
 @interface ViewController () <JSQMessagesCollectionViewDataSource, JSQMessagesCollectionViewDelegateFlowLayout, JSQMessageData> {
     NSMutableArray *_messages;
@@ -33,6 +34,9 @@
     self.senderId = @"user-1";
     self.senderDisplayName = @"Me";
     
+    self.inputToolbar.contentView.textView.tintColor = [UIColor colorWithRed:0.51 green:0.49 blue:0.81 alpha:1.0];
+    [self.inputToolbar.contentView.rightBarButtonItem setTitleColor:[UIColor colorWithRed:0.51 green:0.49 blue:0.81 alpha:1.0] forState:UIControlStateNormal];
+    
     self.collectionView.collectionViewLayout.incomingAvatarViewSize = CGSizeZero;
     self.collectionView.collectionViewLayout.outgoingAvatarViewSize = CGSizeZero;
     
@@ -40,7 +44,14 @@
 }
 
 - (void)viewWillAppear:(BOOL)animated{
-    [self getEventsFromAPI:NULL];
+    [PFAnonymousUtils logInWithBlock:^(PFUser *user, NSError * error) {
+        if (!error) {
+            PFInstallation *installation  = [PFInstallation currentInstallation];
+            [installation setObject:@[[user objectId]] forKey:@"channels"];
+            [installation save];
+            [self getEventsFromAPI:NULL];
+        }
+    }];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -52,26 +63,25 @@
     has_alert = NO;
     _messages = [[NSMutableArray alloc] init];
     
-    NSData* data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"http://146.148.120.81/events/1"]];
-    [self fetchedData:data];
-    [self.collectionView reloadData];
+    PFQuery *alertsQuery = [PFQuery queryWithClassName:@"Alert"];
+    [alertsQuery whereKey:@"user_id" equalTo:[[PFUser currentUser] objectId]];
+    NSArray *data = [alertsQuery findObjects];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self fetchedData:data];
+        [self.collectionView reloadData];
+    });
 }
 
-- (void)fetchedData:(NSData *)responseData {
-    //parse out the json data
-    NSError* error;
+- (void)fetchedData:(NSArray *)events {
     
-    NSArray *events = [NSJSONSerialization
-               JSONObjectWithData:responseData
-               options:kNilOptions
-               error:&error];
     if (events.count > 0)
         lastRefresh = [NSDate date];
     
     NSDateFormatter* apiTime = [[NSDateFormatter alloc] init];
     [apiTime setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZZZ"];
     
-    if ([[NSDate date] timeIntervalSinceDate:[apiTime dateFromString:[events.lastObject objectForKey:@"event_time"]]] > 120 || (events.count == 0 && [[NSDate date] timeIntervalSinceDate:lastRefresh] > 120)) {
+    if ([[NSDate date] timeIntervalSinceDate:[apiTime dateFromString:[events.lastObject objectForKey:@"created_at"]]] > 120 || (events.count == 0 && [[NSDate date] timeIntervalSinceDate:lastRefresh] > 120)) {
         [_messages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
                                                 senderDisplayName:@"Device"
                                                              date:[NSDate date]
@@ -82,12 +92,14 @@
         has_alert = YES;
     } else {
         
-        for (NSDictionary* event in events) {
+        for (PFObject* event in events) {
             // Check for Criteria and Compose Messages
             
             NSString* message_text;
             
-            if ([[event objectForKey:@"event_type"] isEqualToString:@"noise"]) {
+            if ([[event objectForKey:@"event_type"] isEqualToString:@"Broken Window"]) {
+                message_text = @"I've detected what could be a broken window in your home, what would you like me to do?";
+            } else if ([[event objectForKey:@"event_type"] isEqualToString:@"noise"]) {
                 if ([[event objectForKey:@"amount"] floatValue] > 40.0) {
                     message_text = @"I've detected some loud noise in your home, what would you like me to do?";
                 }
@@ -109,9 +121,9 @@
                 
                 has_alert = YES;
             }
-            dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                [NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://146.148.120.81/events/%@/ack", [event objectForKey:@"id"]]]];
-            });
+            
+            [event setValue:@YES forKey:@"seen"];
+            [event saveInBackground];
         }
     }
     
