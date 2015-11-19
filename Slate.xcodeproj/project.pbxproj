@@ -13,7 +13,9 @@
 		3A2803871BF7589D000C3096 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3A2803851BF7589D000C3096 /* Main.storyboard */; };
 		3A2803891BF7589D000C3096 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3A2803881BF7589D000C3096 /* Assets.xcassets */; };
 		3A28038C1BF7589D000C3096 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3A28038A1BF7589D000C3096 /* LaunchScreen.storyboard */; };
-		3A2803951BF75C32000C3096 /* EventCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3A2803941BF75C32000C3096 /* EventCell.m */; };
+		3AADD0B71BFD996D002C9D04 /* SLUser.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AADD0B61BFD996D002C9D04 /* SLUser.m */; };
+		3AADD0BD1BFD9BFD002C9D04 /* SLAlertsArray.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AADD0BC1BFD9BFD002C9D04 /* SLAlertsArray.m */; };
+		3AADD0C11BFDA2E2002C9D04 /* SLAlertsQuery.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AADD0C01BFDA2E2002C9D04 /* SLAlertsQuery.m */; };
 		FA8E92540A3463FF73D7DD8B /* libPods-Slate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F5E73639335C370FAA744E2E /* libPods-Slate.a */; };
 /* End PBXBuildFile section */
 
@@ -28,8 +30,12 @@
 		3A2803881BF7589D000C3096 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3A28038B1BF7589D000C3096 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3A28038D1BF7589D000C3096 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3A2803931BF75C32000C3096 /* EventCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventCell.h; sourceTree = "<group>"; };
-		3A2803941BF75C32000C3096 /* EventCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EventCell.m; sourceTree = "<group>"; };
+		3AADD0B51BFD996D002C9D04 /* SLUser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SLUser.h; path = Models/SLUser.h; sourceTree = "<group>"; };
+		3AADD0B61BFD996D002C9D04 /* SLUser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SLUser.m; path = Models/SLUser.m; sourceTree = "<group>"; };
+		3AADD0BB1BFD9BFD002C9D04 /* SLAlertsArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SLAlertsArray.h; path = Models/SLAlertsArray.h; sourceTree = "<group>"; };
+		3AADD0BC1BFD9BFD002C9D04 /* SLAlertsArray.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SLAlertsArray.m; path = Models/SLAlertsArray.m; sourceTree = "<group>"; };
+		3AADD0BF1BFDA2E2002C9D04 /* SLAlertsQuery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SLAlertsQuery.h; path = Models/SLAlertsQuery.h; sourceTree = "<group>"; };
+		3AADD0C01BFDA2E2002C9D04 /* SLAlertsQuery.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SLAlertsQuery.m; path = Models/SLAlertsQuery.m; sourceTree = "<group>"; };
 		9FBF1B978BC6FD269867990E /* Pods-Slate.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Slate.release.xcconfig"; path = "Pods/Target Support Files/Pods-Slate/Pods-Slate.release.xcconfig"; sourceTree = "<group>"; };
 		E49A0079DE3CAF112B3793FE /* Pods-Slate.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Slate.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Slate/Pods-Slate.debug.xcconfig"; sourceTree = "<group>"; };
 		F5E73639335C370FAA744E2E /* libPods-Slate.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Slate.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,8 +78,8 @@
 				3A2803801BF7589D000C3096 /* AppDelegate.m */,
 				3A2803821BF7589D000C3096 /* ViewController.h */,
 				3A2803831BF7589D000C3096 /* ViewController.m */,
-				3A2803931BF75C32000C3096 /* EventCell.h */,
-				3A2803941BF75C32000C3096 /* EventCell.m */,
+				3AADD0B81BFD9A10002C9D04 /* Models */,
+				3AADD0BA1BFD9A22002C9D04 /* Views */,
 				3A2803851BF7589D000C3096 /* Main.storyboard */,
 				3A2803881BF7589D000C3096 /* Assets.xcassets */,
 				3A28038A1BF7589D000C3096 /* LaunchScreen.storyboard */,
@@ -89,6 +95,50 @@
 				3A28037D1BF7589D000C3096 /* main.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		3AADD0B81BFD9A10002C9D04 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				3AADD0C21BFDA2ED002C9D04 /* Queries */,
+				3AADD0BE1BFD9EF0002C9D04 /* Alerts */,
+				3AADD0B91BFD9A18002C9D04 /* User */,
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
+		3AADD0B91BFD9A18002C9D04 /* User */ = {
+			isa = PBXGroup;
+			children = (
+				3AADD0B51BFD996D002C9D04 /* SLUser.h */,
+				3AADD0B61BFD996D002C9D04 /* SLUser.m */,
+			);
+			name = User;
+			sourceTree = "<group>";
+		};
+		3AADD0BA1BFD9A22002C9D04 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Views;
+			sourceTree = "<group>";
+		};
+		3AADD0BE1BFD9EF0002C9D04 /* Alerts */ = {
+			isa = PBXGroup;
+			children = (
+				3AADD0BB1BFD9BFD002C9D04 /* SLAlertsArray.h */,
+				3AADD0BC1BFD9BFD002C9D04 /* SLAlertsArray.m */,
+			);
+			name = Alerts;
+			sourceTree = "<group>";
+		};
+		3AADD0C21BFDA2ED002C9D04 /* Queries */ = {
+			isa = PBXGroup;
+			children = (
+				3AADD0BF1BFDA2E2002C9D04 /* SLAlertsQuery.h */,
+				3AADD0C01BFDA2E2002C9D04 /* SLAlertsQuery.m */,
+			);
+			name = Queries;
 			sourceTree = "<group>";
 		};
 		8B3E3EBBFD67F69F7411E368 /* Frameworks */ = {
@@ -235,10 +285,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3A2803951BF75C32000C3096 /* EventCell.m in Sources */,
 				3A2803841BF7589D000C3096 /* ViewController.m in Sources */,
+				3AADD0BD1BFD9BFD002C9D04 /* SLAlertsArray.m in Sources */,
 				3A2803811BF7589D000C3096 /* AppDelegate.m in Sources */,
 				3A28037E1BF7589D000C3096 /* main.m in Sources */,
+				3AADD0C11BFDA2E2002C9D04 /* SLAlertsQuery.m in Sources */,
+				3AADD0B71BFD996D002C9D04 /* SLUser.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

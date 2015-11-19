@@ -7,29 +7,28 @@
 //
 
 #import "ViewController.h"
-#import "EventCell.h"
+
+#import "SLAlertsArray.h"
 
 #import <JSQMessagesViewController/JSQMessages.h>
 #import <Parse/Parse.h>
 
 @interface ViewController () <JSQMessagesCollectionViewDataSource, JSQMessagesCollectionViewDelegateFlowLayout, JSQMessageData> {
-    NSMutableArray *_messages;
-    BOOL has_alert;
-    NSDate *lastRefresh;
+    NSMutableArray* _chatMessages;
 }
 
 @end
 
 @implementation ViewController
 
+#pragma mark View Controller Delegate
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
     
-    _messages = [NSMutableArray array];
-    lastRefresh = [NSDate date];
-  
-    has_alert = NO;
+    _chatMessages = [[NSMutableArray alloc] init];
+    
+    // Do any additional setup after loading the view, typically from a nib.
     
     self.senderId = @"user-1";
     self.senderDisplayName = @"Me";
@@ -46,9 +45,6 @@
 - (void)viewWillAppear:(BOOL)animated{
     [PFAnonymousUtils logInWithBlock:^(PFUser *user, NSError * error) {
         if (!error) {
-            PFInstallation *installation  = [PFInstallation currentInstallation];
-            [installation setObject:@[[user objectId]] forKey:@"channels"];
-            [installation save];
             [self getEventsFromAPI:NULL];
         }
     }];
@@ -59,88 +55,81 @@
     // Dispose of any resources that can be recreated.
 }
 
+#pragma mark API Methods
+
 - (IBAction)getEventsFromAPI:(id)sender {
-    has_alert = NO;
-    _messages = [[NSMutableArray alloc] init];
-    
-    PFQuery *alertsQuery = [PFQuery queryWithClassName:@"Alert"];
-    [alertsQuery whereKey:@"seen" notEqualTo:@YES];
-    
-    [alertsQuery findObjects];
-    
-    NSArray *data = [alertsQuery findObjects];
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self fetchedData:data];
-        [self.collectionView reloadData];
-    });
+    [[SLAlertsArray sharedInstance] fetchMessagesInBackgroundWithCompletion:^(SLAlertsArray *messages, NSError *error) {
+        [self fetchedData:messages];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.collectionView reloadData];
+        });
+    }];
 }
 
-- (void)fetchedData:(NSArray *)events {
-    
-    if (events.count > 0)
-        lastRefresh = [NSDate date];
+- (void)fetchedData:(SLAlertsArray *)messages {
+    BOOL hasAlert = NO;
     
     NSDateFormatter* apiTime = [[NSDateFormatter alloc] init];
     [apiTime setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZZZ"];
     
-    if ([[NSDate date] timeIntervalSinceDate:[apiTime dateFromString:[events.lastObject objectForKey:@"created_at"]]] > 120 || (events.count == 0 && [[NSDate date] timeIntervalSinceDate:lastRefresh] > 120)) {
-        [_messages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
+    if ([[NSDate date] timeIntervalSinceDate:[apiTime dateFromString:[messages.lastObject objectForKey:@"created_at"]]] > 120 || (messages.count == 0 && [[NSDate date] timeIntervalSinceDate:[messages lastRefresh]] > 120)) {
+        [_chatMessages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
                                                 senderDisplayName:@"Device"
                                                              date:[NSDate date]
                                                              text:@"I'm having trouble connecting to your device, has it been turned off?"]];
         
         [self finishReceivingMessageAnimated:YES];
         
-        has_alert = YES;
+        hasAlert = NO;
     } else {
         
-        for (PFObject* event in events) {
+        for (PFObject* alert in messages) {
             // Check for Criteria and Compose Messages
             
-            NSString* message_text;
+            NSString* messageText;
             
-            if ([[event objectForKey:@"event_type"] isEqualToString:@"Broken Window"]) {
-                message_text = @"I've detected what could be a broken window in your home, what would you like me to do?";
-            } else if ([[event objectForKey:@"event_type"] isEqualToString:@"noise"]) {
-                if ([[event objectForKey:@"amount"] floatValue] > 40.0) {
-                    message_text = @"I've detected some loud noise in your home, what would you like me to do?";
+            if ([[alert objectForKey:@"event_type"] isEqualToString:@"Broken Window"]) {
+                messageText = @"I've detected what could be a broken window in your home, what would you like me to do?";
+            } else if ([[alert objectForKey:@"event_type"] isEqualToString:@"noise"]) {
+                if ([[alert objectForKey:@"amount"] floatValue] > 40.0) {
+                    messageText = @"I've detected some loud noise in your home, what would you like me to do?";
                 }
-            } else if ([[event objectForKey:@"event_type"] isEqualToString:@"temp"]) {
-                if ((int)[event objectForKey:@"amount"] > 30) {
-                    message_text = @"It's way too hot at home, should I turn on the AC?";
-                } else if ((int)[event objectForKey:@"amount"] < 0) {
-                    message_text = @"It's below freezing in your home, should I turn on the heater?";
+            } else if ([[alert objectForKey:@"event_type"] isEqualToString:@"temp"]) {
+                if ((int)[alert objectForKey:@"amount"] > 30) {
+                    messageText = @"It's way too hot at home, should I turn on the AC?";
+                } else if ((int)[alert objectForKey:@"amount"] < 0) {
+                    messageText = @"It's below freezing in your home, should I turn on the heater?";
                 }
             }
             
-            if (message_text && !has_alert) {
-                [_messages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
+            if (messageText && !hasAlert) {
+                [_chatMessages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
                                                          senderDisplayName:@"Device"
                                                                       date:[NSDate date]
-                                                                      text:message_text]];
+                                                                      text:messageText]];
                 
                 [self finishReceivingMessageAnimated:YES];
                 
-                has_alert = YES;
+                hasAlert = YES;
             }
             
-            [event setValue:@YES forKey:@"seen"];
-            [event setValue:[[PFUser currentUser] objectId] forKey:@"user_id"];
-            [event saveInBackground];
+            [alert setValue:@YES forKey:@"seen"];
+            [alert setValue:[[PFUser currentUser] objectId] forKey:@"user_id"];
+            [alert saveInBackground];
         }
     }
     
-    if (!has_alert) {
-        [_messages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
+    if (!hasAlert) {
+        [_chatMessages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
                                                 senderDisplayName:@"Device"
                                                              date:[NSDate date]
                                                              text:@"Everything seems normal in your home right now."]];
         
         [self finishReceivingMessageAnimated:YES];
     }
-    
 }
+
+#pragma mark JSQMessagesView Methods
 
 - (void)didPressSendButton:(UIButton *)button
            withMessageText:(NSString *)text
@@ -162,17 +151,12 @@
                                                           date:date
                                                           text:text];
     
-    [_messages addObject:message];
+    [_chatMessages addObject:message];
     
     [self finishSendingMessageAnimated:YES];
     
     [self.collectionView reloadData];
-    
-    if (has_alert) {
-        self.showTypingIndicator = !self.showTypingIndicator;
-    
-        [self performSelector:@selector(showDeviceReply) withObject:NULL afterDelay:1.3f];
-    }
+
 }
 
 - (void)showDeviceReply {
@@ -181,7 +165,7 @@
                                                                 date:[NSDate date]
                                                                 text:@"Ok"];
     
-    [_messages addObject:message_reply];
+    [_chatMessages addObject:message_reply];
     
     [self finishSendingMessageAnimated:YES];
     
@@ -192,12 +176,12 @@
 
 - (id<JSQMessageData>)collectionView:(JSQMessagesCollectionView *)collectionView messageDataForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    return [_messages objectAtIndex:indexPath.item];
+    return [_chatMessages objectAtIndex:indexPath.item];
 }
 
 - (void)collectionView:(JSQMessagesCollectionView *)collectionView didDeleteMessageAtIndexPath:(NSIndexPath *)indexPath
 {
-    [_messages removeObjectAtIndex:indexPath.item];
+    [_chatMessages removeObjectAtIndex:indexPath.item];
 }
 
 - (id<JSQMessageBubbleImageDataSource>)collectionView:(JSQMessagesCollectionView *)collectionView messageBubbleImageDataForItemAtIndexPath:(NSIndexPath *)indexPath
@@ -212,7 +196,7 @@
     JSQMessagesBubbleImageFactory *bubbleFactory = [[JSQMessagesBubbleImageFactory alloc] init];
 
     
-    JSQMessage *message = [_messages objectAtIndex:indexPath.item];
+    JSQMessage *message = [_chatMessages objectAtIndex:indexPath.item];
     
     if ([message.senderId isEqualToString:self.senderId]) {
         return [bubbleFactory outgoingMessagesBubbleImageWithColor:[UIColor jsq_messageBubbleLightGrayColor]];
@@ -257,7 +241,7 @@
      *  Show a timestamp for every 3rd message
      */
     if (indexPath.item % 3 == 0) {
-        JSQMessage *message = [_messages objectAtIndex:indexPath.item];
+        JSQMessage *message = [_chatMessages objectAtIndex:indexPath.item];
         return [[JSQMessagesTimestampFormatter sharedFormatter] attributedTimestampForDate:message.date];
     }
     
@@ -266,7 +250,7 @@
 
 - (NSAttributedString *)collectionView:(JSQMessagesCollectionView *)collectionView attributedTextForMessageBubbleTopLabelAtIndexPath:(NSIndexPath *)indexPath
 {
-    JSQMessage *message = [_messages objectAtIndex:indexPath.item];
+    JSQMessage *message = [_chatMessages objectAtIndex:indexPath.item];
     
     /**
      *  iOS7-style sender name labels
@@ -276,7 +260,7 @@
     }
     
     if (indexPath.item - 1 > 0) {
-        JSQMessage *previousMessage = [_messages objectAtIndex:indexPath.item - 1];
+        JSQMessage *previousMessage = [_chatMessages objectAtIndex:indexPath.item - 1];
         if ([[previousMessage senderId] isEqualToString:message.senderId]) {
             return nil;
         }
@@ -293,11 +277,11 @@
     return nil;
 }
 
-#pragma mark - UICollectionView DataSource
+#pragma mark UICollectionView DataSource
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
-    return [_messages count];
+    return [_chatMessages count];
 }
 
 - (UICollectionViewCell *)collectionView:(JSQMessagesCollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
@@ -321,7 +305,7 @@
      *  Instead, override the properties you want on `self.collectionView.collectionViewLayout` from `viewDidLoad`
      */
     
-    JSQMessage *msg = [_messages objectAtIndex:indexPath.item];
+    JSQMessage *msg = [_chatMessages objectAtIndex:indexPath.item];
     
     if (!msg.isMediaMessage) {
         
@@ -339,9 +323,9 @@
     return cell;
 }
 
-#pragma mark - UICollectionView Delegate
+#pragma mark UICollectionView Delegate
 
-#pragma mark - Custom menu items
+#pragma mark Custom menu items
 
 - (BOOL)collectionView:(UICollectionView *)collectionView canPerformAction:(SEL)action forItemAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender
 {
@@ -376,9 +360,9 @@
 
 
 
-#pragma mark - JSQMessages collection view flow layout delegate
+#pragma mark JSQMessages collection view flow layout delegate
 
-#pragma mark - Adjusting cell label heights
+#pragma mark Adjusting cell label heights
 
 - (CGFloat)collectionView:(JSQMessagesCollectionView *)collectionView
                    layout:(JSQMessagesCollectionViewFlowLayout *)collectionViewLayout heightForCellTopLabelAtIndexPath:(NSIndexPath *)indexPath
@@ -406,13 +390,13 @@
     /**
      *  iOS7-style sender name labels
      */
-    JSQMessage *currentMessage = [_messages objectAtIndex:indexPath.item];
+    JSQMessage *currentMessage = [_chatMessages objectAtIndex:indexPath.item];
     if ([[currentMessage senderId] isEqualToString:self.senderId]) {
         return 0.0f;
     }
     
     if (indexPath.item - 1 > 0) {
-        JSQMessage *previousMessage = [_messages objectAtIndex:indexPath.item - 1];
+        JSQMessage *previousMessage = [_chatMessages objectAtIndex:indexPath.item - 1];
         if ([[previousMessage senderId] isEqualToString:[currentMessage senderId]]) {
             return 0.0f;
         }
@@ -427,7 +411,7 @@
     return 0.0f;
 }
 
-#pragma mark - Responding to collection view tap events
+#pragma mark Responding to collection view tap events
 
 - (void)collectionView:(JSQMessagesCollectionView *)collectionView
                 header:(JSQMessagesLoadEarlierHeaderView *)headerView didTapLoadEarlierMessagesButton:(UIButton *)sender
@@ -450,7 +434,7 @@
     NSLog(@"Tapped cell at %@!", NSStringFromCGPoint(touchLocation));
 }
 
-#pragma mark - JSQMessagesComposerTextViewPasteDelegate methods
+#pragma mark JSQMessagesComposerTextViewPasteDelegate methods
 
 
 - (BOOL)composerTextView:(JSQMessagesComposerTextView *)textView shouldPasteWithSender:(id)sender
@@ -462,7 +446,7 @@
                                                  senderDisplayName:self.senderDisplayName
                                                               date:[NSDate date]
                                                              media:item];
-        [_messages addObject:message];
+        [_chatMessages addObject:message];
         [self finishSendingMessage];
         return NO;
     }
