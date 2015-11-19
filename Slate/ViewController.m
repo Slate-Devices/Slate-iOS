@@ -9,6 +9,9 @@
 #import "ViewController.h"
 
 #import "SLAlertsArray.h"
+#import "SLAlert.h"
+#import "SLMessage.h"
+#import "SLConstants.h"
 
 #import <JSQMessagesViewController/JSQMessages.h>
 #import <Parse/Parse.h>
@@ -23,110 +26,108 @@
 
 #pragma mark View Controller Delegate
 
-- (void)viewDidLoad {
+- (void)viewDidLoad
+{
     [super viewDidLoad];
     
     _chatMessages = [[NSMutableArray alloc] init];
     
-    // Do any additional setup after loading the view, typically from a nib.
-    
-    self.senderId = @"user-1";
-    self.senderDisplayName = @"Me";
-    
-    self.inputToolbar.contentView.textView.tintColor = [UIColor colorWithRed:0.51 green:0.49 blue:0.81 alpha:1.0];
-    [self.inputToolbar.contentView.rightBarButtonItem setTitleColor:[UIColor colorWithRed:0.51 green:0.49 blue:0.81 alpha:1.0] forState:UIControlStateNormal];
-    
-    self.collectionView.collectionViewLayout.incomingAvatarViewSize = CGSizeZero;
-    self.collectionView.collectionViewLayout.outgoingAvatarViewSize = CGSizeZero;
-    
-    self.collectionView.collectionViewLayout.springinessEnabled = YES;
+    [self setupMessagesView];
 }
 
-- (void)viewWillAppear:(BOOL)animated{
+- (void)viewWillAppear:(BOOL)animated
+{
+    self.showTypingIndicator = YES;
     [PFAnonymousUtils logInWithBlock:^(PFUser *user, NSError * error) {
         if (!error) {
-            [self getEventsFromAPI:NULL];
+            [self setSenderId:[user objectId] andDisplayName:@"Me"];
+            [self getEventsFromAPI:self];
         }
     }];
 }
 
-- (void)didReceiveMemoryWarning {
+- (void)didReceiveMemoryWarning
+{
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
 
+#pragma mark Initialization
+
+- (void)setSenderId:(NSString*)senderId andDisplayName:(NSString*)displayName
+{
+    self.senderId = senderId;
+    self.senderDisplayName = displayName;
+}
+
+- (void)setupMessagesView
+{
+    // Set Textbox Cursor Tint
+    self.inputToolbar.contentView.textView.tintColor = [[SLConstants sharedInstance] purpleColor];
+    
+    // Set Send Button Color
+    [self.inputToolbar.contentView.rightBarButtonItem setTitleColor:[[SLConstants sharedInstance] purpleColor] forState:UIControlStateNormal];
+    [self.inputToolbar.contentView.rightBarButtonItem setTitleColor:[[SLConstants sharedInstance] purpleColor] forState:UIControlStateSelected];
+    
+    // Disable Avatars
+    self.collectionView.collectionViewLayout.incomingAvatarViewSize = CGSizeZero;
+    self.collectionView.collectionViewLayout.outgoingAvatarViewSize = CGSizeZero;
+    
+    // Enable the Bouncy Effect when Scrolling
+    self.collectionView.collectionViewLayout.springinessEnabled = YES;
+}
+
 #pragma mark API Methods
 
-- (IBAction)getEventsFromAPI:(id)sender {
+- (IBAction)getEventsFromAPI:(id)sender
+{
+    [_chatMessages removeAllObjects];
+    [self finishReceivingMessageAnimated:YES];
+    self.showTypingIndicator = YES;
+    
     [[SLAlertsArray sharedInstance] fetchMessagesInBackgroundWithCompletion:^(SLAlertsArray *messages, NSError *error) {
         [self fetchedData:messages];
         dispatch_async(dispatch_get_main_queue(), ^{
+            self.showTypingIndicator = NO;
             [self.collectionView reloadData];
         });
     }];
 }
 
-- (void)fetchedData:(SLAlertsArray *)messages {
+- (void)fetchedData:(SLAlertsArray *)messages
+{
     BOOL hasAlert = NO;
     
     NSDateFormatter* apiTime = [[NSDateFormatter alloc] init];
     [apiTime setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZZZ"];
     
-    if ([[NSDate date] timeIntervalSinceDate:[apiTime dateFromString:[messages.lastObject objectForKey:@"created_at"]]] > 120 || (messages.count == 0 && [[NSDate date] timeIntervalSinceDate:[messages lastRefresh]] > 120)) {
-        [_chatMessages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
-                                                senderDisplayName:@"Device"
-                                                             date:[NSDate date]
-                                                             text:@"I'm having trouble connecting to your device, has it been turned off?"]];
-        
-        [self finishReceivingMessageAnimated:YES];
-        
+    if ([[NSDate date] timeIntervalSinceDate:[apiTime dateFromString:[messages.lastObject objectForKey:@"created_at"]]] > 120 || (messages.count == 0 && [[NSDate date] timeIntervalSinceDate:[[SLAlertsArray sharedInstance] lastRefresh]] > 120)) {
+        [_chatMessages addObject:[SLMessage deviceDisconnectedMessage]];
         hasAlert = NO;
     } else {
         
-        for (PFObject* alert in messages) {
+        for (SLAlert* alert in messages) {
             // Check for Criteria and Compose Messages
-            
-            NSString* messageText;
-            
-            if ([[alert objectForKey:@"event_type"] isEqualToString:@"Broken Window"]) {
-                messageText = @"I've detected what could be a broken window in your home, what would you like me to do?";
-            } else if ([[alert objectForKey:@"event_type"] isEqualToString:@"noise"]) {
-                if ([[alert objectForKey:@"amount"] floatValue] > 40.0) {
-                    messageText = @"I've detected some loud noise in your home, what would you like me to do?";
-                }
-            } else if ([[alert objectForKey:@"event_type"] isEqualToString:@"temp"]) {
-                if ((int)[alert objectForKey:@"amount"] > 30) {
-                    messageText = @"It's way too hot at home, should I turn on the AC?";
-                } else if ((int)[alert objectForKey:@"amount"] < 0) {
-                    messageText = @"It's below freezing in your home, should I turn on the heater?";
-                }
-            }
+            NSString *messageText = [alert processMessage];
             
             if (messageText && !hasAlert) {
                 [_chatMessages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
-                                                         senderDisplayName:@"Device"
-                                                                      date:[NSDate date]
-                                                                      text:messageText]];
-                
-                [self finishReceivingMessageAnimated:YES];
-                
+                                                            senderDisplayName:@"Device"
+                                                                         date:[NSDate date]
+                                                                         text:messageText]];
                 hasAlert = YES;
             }
             
-            [alert setValue:@YES forKey:@"seen"];
-            [alert setValue:[[PFUser currentUser] objectId] forKey:@"user_id"];
+            [alert setSeen:YES];
             [alert saveInBackground];
         }
     }
     
     if (!hasAlert) {
-        [_chatMessages addObject:[[JSQMessage alloc] initWithSenderId:@"device-1"
-                                                senderDisplayName:@"Device"
-                                                             date:[NSDate date]
-                                                             text:@"Everything seems normal in your home right now."]];
-        
-        [self finishReceivingMessageAnimated:YES];
+        [_chatMessages addObject:[SLMessage noAlertsMessage]];
     }
+    
+    [self finishReceivingMessageAnimated:YES];
 }
 
 #pragma mark JSQMessagesView Methods
@@ -154,8 +155,6 @@
     [_chatMessages addObject:message];
     
     [self finishSendingMessageAnimated:YES];
-    
-    [self.collectionView reloadData];
 
 }
 
@@ -202,7 +201,7 @@
         return [bubbleFactory outgoingMessagesBubbleImageWithColor:[UIColor jsq_messageBubbleLightGrayColor]];
     }
     
-    return [bubbleFactory outgoingMessagesBubbleImageWithColor:[UIColor colorWithRed:0.51 green:0.49 blue:0.81 alpha:1.0]];
+    return [bubbleFactory outgoingMessagesBubbleImageWithColor:[[SLConstants sharedInstance] purpleColor]];
 
 }
 

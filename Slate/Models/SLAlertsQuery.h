@@ -7,10 +7,13 @@
 //
 
 #import <Parse/Parse.h>
+#import "SLUser.h"
 
 @interface SLAlertsQuery : PFQuery
 
 + (SLAlertsQuery *)alertsQuery;
 + (SLAlertsQuery *)unseenAlertsQuery;
++ (SLAlertsQuery *)unseenAlertsQueryForUser:(SLUser*)user;
++ (SLAlertsQuery *)unseenAlertsQueryForCurrentUser;
 
 @end

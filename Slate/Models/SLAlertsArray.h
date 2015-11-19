@@ -15,5 +15,6 @@
 + (SLAlertsArray*)sharedInstance;
 
 - (void)fetchMessagesInBackgroundWithCompletion:(void(^)(SLAlertsArray* messages, NSError *error))completionBlock;
+- (NSDate*)lastRefresh;
 
 @end

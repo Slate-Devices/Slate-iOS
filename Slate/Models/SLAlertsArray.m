@@ -32,15 +32,12 @@
     SLAlertsQuery *alertsQuery = [SLAlertsQuery unseenAlertsQuery];
     
     [alertsQuery findObjectsInBackgroundWithBlock:^(NSArray* messages, NSError* error) {
+        if ([messages count] > 0)
+            self.lastRefresh = [NSDate date];
+        
         completionBlock((SLAlertsArray*)messages, error);
     }];
 
-}
-
-- (void)resetLastRefreshDate
-{
-    if (self.count > 0)
-        self.lastRefresh  = [NSDate date];
 }
 
 @end

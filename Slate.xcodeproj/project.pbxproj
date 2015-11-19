@@ -16,6 +16,9 @@
 		3AADD0B71BFD996D002C9D04 /* SLUser.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AADD0B61BFD996D002C9D04 /* SLUser.m */; };
 		3AADD0BD1BFD9BFD002C9D04 /* SLAlertsArray.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AADD0BC1BFD9BFD002C9D04 /* SLAlertsArray.m */; };
 		3AADD0C11BFDA2E2002C9D04 /* SLAlertsQuery.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AADD0C01BFDA2E2002C9D04 /* SLAlertsQuery.m */; };
+		3AADD0C71BFDC237002C9D04 /* SLConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AADD0C61BFDC237002C9D04 /* SLConstants.m */; };
+		3AADD0CB1BFDC72F002C9D04 /* SLAlert.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AADD0CA1BFDC72F002C9D04 /* SLAlert.m */; };
+		3AADD0CE1BFDCA48002C9D04 /* SLMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AADD0CD1BFDCA48002C9D04 /* SLMessage.m */; };
 		FA8E92540A3463FF73D7DD8B /* libPods-Slate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F5E73639335C370FAA744E2E /* libPods-Slate.a */; };
 /* End PBXBuildFile section */
 
@@ -36,6 +39,12 @@
 		3AADD0BC1BFD9BFD002C9D04 /* SLAlertsArray.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SLAlertsArray.m; path = Models/SLAlertsArray.m; sourceTree = "<group>"; };
 		3AADD0BF1BFDA2E2002C9D04 /* SLAlertsQuery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SLAlertsQuery.h; path = Models/SLAlertsQuery.h; sourceTree = "<group>"; };
 		3AADD0C01BFDA2E2002C9D04 /* SLAlertsQuery.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SLAlertsQuery.m; path = Models/SLAlertsQuery.m; sourceTree = "<group>"; };
+		3AADD0C51BFDC237002C9D04 /* SLConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SLConstants.h; path = Models/SLConstants.h; sourceTree = "<group>"; };
+		3AADD0C61BFDC237002C9D04 /* SLConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SLConstants.m; path = Models/SLConstants.m; sourceTree = "<group>"; };
+		3AADD0C91BFDC72F002C9D04 /* SLAlert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SLAlert.h; path = Models/SLAlert.h; sourceTree = "<group>"; };
+		3AADD0CA1BFDC72F002C9D04 /* SLAlert.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SLAlert.m; path = Models/SLAlert.m; sourceTree = "<group>"; };
+		3AADD0CC1BFDCA48002C9D04 /* SLMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SLMessage.h; path = Models/SLMessage.h; sourceTree = "<group>"; };
+		3AADD0CD1BFDCA48002C9D04 /* SLMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SLMessage.m; path = Models/SLMessage.m; sourceTree = "<group>"; };
 		9FBF1B978BC6FD269867990E /* Pods-Slate.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Slate.release.xcconfig"; path = "Pods/Target Support Files/Pods-Slate/Pods-Slate.release.xcconfig"; sourceTree = "<group>"; };
 		E49A0079DE3CAF112B3793FE /* Pods-Slate.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Slate.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Slate/Pods-Slate.debug.xcconfig"; sourceTree = "<group>"; };
 		F5E73639335C370FAA744E2E /* libPods-Slate.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Slate.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -76,8 +85,7 @@
 			children = (
 				3A28037F1BF7589D000C3096 /* AppDelegate.h */,
 				3A2803801BF7589D000C3096 /* AppDelegate.m */,
-				3A2803821BF7589D000C3096 /* ViewController.h */,
-				3A2803831BF7589D000C3096 /* ViewController.m */,
+				3AADD0C41BFDB0CD002C9D04 /* Controllers */,
 				3AADD0B81BFD9A10002C9D04 /* Models */,
 				3AADD0BA1BFD9A22002C9D04 /* Views */,
 				3A2803851BF7589D000C3096 /* Main.storyboard */,
@@ -100,6 +108,8 @@
 		3AADD0B81BFD9A10002C9D04 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				3AADD0CF1BFDCA4D002C9D04 /* Messages */,
+				3AADD0C81BFDC23E002C9D04 /* Constants */,
 				3AADD0C21BFDA2ED002C9D04 /* Queries */,
 				3AADD0BE1BFD9EF0002C9D04 /* Alerts */,
 				3AADD0B91BFD9A18002C9D04 /* User */,
@@ -126,6 +136,8 @@
 		3AADD0BE1BFD9EF0002C9D04 /* Alerts */ = {
 			isa = PBXGroup;
 			children = (
+				3AADD0C91BFDC72F002C9D04 /* SLAlert.h */,
+				3AADD0CA1BFDC72F002C9D04 /* SLAlert.m */,
 				3AADD0BB1BFD9BFD002C9D04 /* SLAlertsArray.h */,
 				3AADD0BC1BFD9BFD002C9D04 /* SLAlertsArray.m */,
 			);
@@ -139,6 +151,33 @@
 				3AADD0C01BFDA2E2002C9D04 /* SLAlertsQuery.m */,
 			);
 			name = Queries;
+			sourceTree = "<group>";
+		};
+		3AADD0C41BFDB0CD002C9D04 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				3A2803821BF7589D000C3096 /* ViewController.h */,
+				3A2803831BF7589D000C3096 /* ViewController.m */,
+			);
+			name = Controllers;
+			sourceTree = "<group>";
+		};
+		3AADD0C81BFDC23E002C9D04 /* Constants */ = {
+			isa = PBXGroup;
+			children = (
+				3AADD0C51BFDC237002C9D04 /* SLConstants.h */,
+				3AADD0C61BFDC237002C9D04 /* SLConstants.m */,
+			);
+			name = Constants;
+			sourceTree = "<group>";
+		};
+		3AADD0CF1BFDCA4D002C9D04 /* Messages */ = {
+			isa = PBXGroup;
+			children = (
+				3AADD0CC1BFDCA48002C9D04 /* SLMessage.h */,
+				3AADD0CD1BFDCA48002C9D04 /* SLMessage.m */,
+			);
+			name = Messages;
 			sourceTree = "<group>";
 		};
 		8B3E3EBBFD67F69F7411E368 /* Frameworks */ = {
@@ -287,9 +326,12 @@
 			files = (
 				3A2803841BF7589D000C3096 /* ViewController.m in Sources */,
 				3AADD0BD1BFD9BFD002C9D04 /* SLAlertsArray.m in Sources */,
+				3AADD0CE1BFDCA48002C9D04 /* SLMessage.m in Sources */,
 				3A2803811BF7589D000C3096 /* AppDelegate.m in Sources */,
+				3AADD0CB1BFDC72F002C9D04 /* SLAlert.m in Sources */,
 				3A28037E1BF7589D000C3096 /* main.m in Sources */,
 				3AADD0C11BFDA2E2002C9D04 /* SLAlertsQuery.m in Sources */,
+				3AADD0C71BFDC237002C9D04 /* SLConstants.m in Sources */,
 				3AADD0B71BFD996D002C9D04 /* SLUser.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

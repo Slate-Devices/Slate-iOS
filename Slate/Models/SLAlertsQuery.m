@@ -7,6 +7,7 @@
 //
 
 #import "SLAlertsQuery.h"
+#import "SLUser.h"
 
 @implementation SLAlertsQuery
 
@@ -23,4 +24,21 @@
     return  query;
 }
 
++ (SLAlertsQuery *)unseenAlertsQueryForUser:(SLUser*)user
+{
+    SLAlertsQuery *query = (SLAlertsQuery*)[self queryWithClassName:@"Alert"];
+    [query whereKey:@"seen" notEqualTo:@YES];
+    [query whereKey:@"user_id" equalTo:[user objectId]];
+    
+    return  query;
+}
+
++ (SLAlertsQuery *)unseenAlertsQueryForCurrentUser
+{
+    SLAlertsQuery *query = (SLAlertsQuery*)[self queryWithClassName:@"Alert"];
+    [query whereKey:@"seen" notEqualTo:@YES];
+    [query whereKey:@"user_id" equalTo:[[SLUser currentUser] objectId]];
+    
+    return  query;
+}
 @end
